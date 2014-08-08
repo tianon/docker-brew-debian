@@ -9,9 +9,6 @@ if [ ${#versions[@]} -eq 0 ]; then
 fi
 versions=( "${versions[@]%/}" )
 
-user="$(docker info | awk '/^Username:/ { print $2 }')"
-[ -z "$user" ] || user="$user/"
-
 get_part() {
 	dir="$1"
 	shift
@@ -33,6 +30,14 @@ get_part() {
 }
 
 repo="$(get_part . repo '')"
+if [ "$repo" ]; then
+	if [[ "$repo" != */* ]]; then
+		user="$(docker info | awk '/^Username:/ { print $2 }')"
+		if [ "$user" ]; then
+			repo="$user/$repo"
+		fi
+	fi
+fi
 
 for version in "${versions[@]}"; do
 	dir="$(readlink -f "$version")"
@@ -61,11 +66,11 @@ for version in "${versions[@]}"; do
 	sudo chown -R "$(id -u):$(id -g)" "$dir"
 	
 	if [ "$repo" ]; then
-		docker build -t "${user}${repo}:${suite}" "$dir"
+		docker build -t "${repo}:${suite}" "$dir"
 		if [ "$suite" != "$version" ]; then
-			docker tag "${user}${repo}:${suite}" "${user}${repo}:${version}"
+			docker tag "${repo}:${suite}" "${repo}:${version}"
 		fi
-		docker run -it --rm "${user}${repo}:${suite}" bash -xc '
+		docker run -it --rm "${repo}:${suite}" bash -xc '
 			cat /etc/apt/sources.list
 			echo
 			cat /etc/os-release 2>/dev/null
@@ -80,5 +85,5 @@ done
 
 latest="$(get_part . latest '')"
 if [ "$latest" ]; then
-	docker tag "${user}${repo}:${latest}" "${user}${repo}:latest"
+	docker tag "${repo}:${latest}" "${repo}:latest"
 fi
