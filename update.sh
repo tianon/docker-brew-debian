@@ -46,13 +46,19 @@ for version in "${versions[@]}"; do
 	include="$(get_part "$dir" include '')"
 	suite="$(get_part "$dir" suite "$version")"
 	mirror="$(get_part "$dir" mirror '')"
+	script="$(get_part "$dir" script '')"
 	
 	args=( -d "$dir" debootstrap )
 	[ -z "$variant" ] || args+=( --variant="$variant" )
 	[ -z "$components" ] || args+=( --components="$components" )
 	[ -z "$include" ] || args+=( --include="$include" )
 	args+=( "$suite" )
-	[ -z "$mirror" ] || args+=( "$mirror" )
+	if [ "$mirror" ]; then
+		args+=( "$mirror" )
+		if [ "$script" ]; then
+			args+=( "$script" )
+		fi
+	fi
 	
 	mkimage="$(readlink -f "mkimage.sh")"
 	{
