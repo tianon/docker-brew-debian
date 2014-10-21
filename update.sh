@@ -60,7 +60,7 @@ for version in "${versions[@]}"; do
 		fi
 	fi
 	
-	mkimage="$(readlink -f ${MKIMAGE:-"mkimage.sh"})"
+	mkimage="$(readlink -f "${MKIMAGE:-"mkimage.sh"}")"
 	{
 		echo "$(basename "$mkimage") ${args[*]/"$dir"/.}"
 		echo
