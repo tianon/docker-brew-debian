@@ -19,7 +19,9 @@ versions=( */ )
 versions=( "${versions[@]%/}" )
 url='git://github.com/tianon/docker-brew-debian'
 
-echo '# maintainer: Tianon Gravi <admwiggin@gmail.com> (@tianon)'
+cat <<-'EOH'
+# maintainer: Tianon Gravi <admwiggin@gmail.com> (@tianon)
+EOH
 
 commitRange='master..dist'
 commitCount="$(git rev-list "$commitRange" --count 2>/dev/null || true)"
@@ -30,15 +32,16 @@ if [ "$commitCount" ] && [ "$commitCount" -gt 0 ]; then
 fi
 
 for version in "${versions[@]}"; do
-	commit="$(git log -1 --format='format:%H' "$version")"
+	commit="$(git log -1 --format='format:%H' -- "$version")"
 	versionAliases=()
 	if [ -z "${noVersion[$version]}" ]; then
-		fullVersion="$(tar -xvf "$version/rootfs.tar.xz" etc/debian_version --to-stdout 2>/dev/null)"
+		tarball="$version/rootfs.tar.xz"
+		fullVersion="$(tar -xvf "$tarball" etc/debian_version --to-stdout 2>/dev/null)"
 		if [ -z "$fullVersion" ] || [[ "$fullVersion" == */sid ]]; then
-			fullVersion="$(eval "$(tar -xvf "$version/rootfs.tar.xz" etc/os-release --to-stdout 2>/dev/null)" && echo "$VERSION" | cut -d' ' -f1)"
+			fullVersion="$(eval "$(tar -xvf "$tarball" etc/os-release --to-stdout 2>/dev/null)" && echo "$VERSION" | cut -d' ' -f1)"
 			if [ -z "$fullVersion" ]; then
 				# lucid...
-				fullVersion="$(eval "$(tar -xvf "$version/rootfs.tar.xz" etc/lsb-release --to-stdout 2>/dev/null)" && echo "$DISTRIB_DESCRIPTION" | cut -d' ' -f2)" # DISTRIB_DESCRIPTION="Ubuntu 10.04.4 LTS"
+				fullVersion="$(eval "$(tar -xvf "$tarball" etc/lsb-release --to-stdout 2>/dev/null)" && echo "$DISTRIB_DESCRIPTION" | cut -d' ' -f2)" # DISTRIB_DESCRIPTION="Ubuntu 10.04.4 LTS"
 			fi
 		else
 			while [ "${fullVersion%.*}" != "$fullVersion" ]; do
