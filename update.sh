@@ -91,5 +91,5 @@ done
 
 latest="$(get_part . latest '')"
 if [ "$latest" ]; then
-	docker tag "${repo}:${latest}" "${repo}:latest"
+	docker tag -f "${repo}:${latest}" "${repo}:latest"
 fi
