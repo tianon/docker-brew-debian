@@ -11,6 +11,7 @@ noVersion=(
 	[stable]=1
 	[testing]=1
 	[unstable]=1
+	[sid]=1
 )
 
 cd "$(dirname "$(readlink -f "$BASH_SOURCE")")"
