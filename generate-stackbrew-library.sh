@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+cd "$(dirname "$(readlink -f "$BASH_SOURCE")")"
+
 declare -A aliases
 aliases=(
 	[$(cat latest)]='latest'
@@ -13,8 +15,6 @@ noVersion=(
 	[unstable]=1
 	[sid]=1
 )
-
-cd "$(dirname "$(readlink -f "$BASH_SOURCE")")"
 
 versions=( */ )
 versions=( "${versions[@]%/}" )
