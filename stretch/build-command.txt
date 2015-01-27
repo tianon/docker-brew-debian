@@ -1,0 +1,3 @@
+mkimage.sh --dir . --compression xz debootstrap --variant=minbase --components=main --include=inetutils-ping,iproute2 --force-check-gpg --merged-usr stretch http://deb.debian.org/debian
+
+https://github.com/docker/docker/blob/master/contrib/mkimage.sh
