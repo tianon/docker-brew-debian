@@ -1,0 +1,3 @@
+mkimage.sh --dir . --compression xz debootstrap --variant=minbase --components=main --include=inetutils-ping,iproute --force-check-gpg stable http://deb.debian.org/debian
+
+https://github.com/docker/docker/blob/master/contrib/mkimage.sh
