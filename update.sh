@@ -72,9 +72,9 @@ for version in "${versions[@]}"; do
 	sudo chown -R "$(id -u):$(id -g)" "$dir"
 	
 	if [ "$repo" ]; then
-		docker build -t "${repo}:${suite}" "$dir"
+		( set -x && docker build -t "${repo}:${suite}" "$dir" )
 		if [ "$suite" != "$version" ]; then
-			docker tag "${repo}:${suite}" "${repo}:${version}"
+			( set -x && docker tag "${repo}:${suite}" "${repo}:${version}" )
 		fi
 		docker run -it --rm "${repo}:${suite}" bash -xc '
 			cat /etc/apt/sources.list
@@ -91,5 +91,5 @@ done
 
 latest="$(get_part . latest '')"
 if [ "$latest" ]; then
-	docker tag -f "${repo}:${latest}" "${repo}:latest"
+	( set -x && docker tag -f "${repo}:${latest}" "${repo}:latest" )
 fi
