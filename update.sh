@@ -52,6 +52,13 @@ for version in "${versions[@]}"; do
 	[ -z "$variant" ] || args+=( --variant="$variant" )
 	[ -z "$components" ] || args+=( --components="$components" )
 	[ -z "$include" ] || args+=( --include="$include" )
+	
+	debootstrapVersion="$(debootstrap --version)"
+	debootstrapVersion="${debootstrapVersion##* }"
+	if dpkg --compare-versions "$debootstrapVersion" '>=' '1.0.69'; then
+		args+=( --force-check-gpg )
+	fi
+	
 	args+=( "$suite" )
 	if [ "$mirror" ]; then
 		args+=( "$mirror" )
