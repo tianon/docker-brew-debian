@@ -93,6 +93,7 @@ for version in "${versions[@]}"; do
 			cat /etc/debian_version 2>/dev/null
 			true
 		'
+		docker run --rm "${repo}:${suite}" dpkg-query -f '${Package}\t${Version}\n' -W > "$dir/build.manifest"
 	fi
 done
 
