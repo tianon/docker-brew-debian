@@ -39,6 +39,52 @@ if [ "$repo" ]; then
 	fi
 fi
 
+vercomp () {
+	if [[ "$1" == "$2" ]]
+	then
+		return 0
+	fi
+	local IFS=.
+	local i ver1=($1) ver2=($2)
+	# fill empty fields in ver1 with zeros
+	for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+	do
+		ver1[i]=0
+	done
+	for ((i=0; i<${#ver1[@]}; i++))
+	do
+		if [[ -z ${ver2[i]} ]]
+		then
+			# fill empty fields in ver2 with zeros
+			ver2[i]=0
+		fi
+		if ((10#${ver1[i]} > 10#${ver2[i]}))
+		then
+			return 1
+		fi
+		if ((10#${ver1[i]} < 10#${ver2[i]}))
+		then
+			return 2
+		fi
+	done
+	return 0
+}
+
+compareversions () {
+	vercomp "$1" "$2"
+	case $? in
+		0) op='=';;
+		1) op='>';;
+		2) op='<';;
+	esac
+	if [[ $op != $3 ]]
+	then
+		return 1
+	else
+		return 0
+	fi
+}
+
 for version in "${versions[@]}"; do
 	dir="$(readlink -f "$version")"
 	variant="$(get_part "$dir" variant 'minbase')"
@@ -47,18 +93,21 @@ for version in "${versions[@]}"; do
 	suite="$(get_part "$dir" suite "$version")"
 	mirror="$(get_part "$dir" mirror '')"
 	script="$(get_part "$dir" script '')"
-	
+
 	args=( -d "$dir" debootstrap )
 	[ -z "$variant" ] || args+=( --variant="$variant" )
 	[ -z "$components" ] || args+=( --components="$components" )
 	[ -z "$include" ] || args+=( --include="$include" )
-	
+
 	debootstrapVersion="$(debootstrap --version)"
 	debootstrapVersion="${debootstrapVersion##* }"
-	if dpkg --compare-versions "$debootstrapVersion" '>=' '1.0.69'; then
+	debootstrapVersion="${debootstrapVersion%-*}"
+	if compareversions "$debootstrapVersion" 1.0.69 '='; then
+		args+=( --force-check-gpg )
+	elif compareversions "$debootstrapVersion" 1.0.69 '>'; then
 		args+=( --force-check-gpg )
 	fi
-	
+
 	args+=( "$suite" )
 	if [ "$mirror" ]; then
 		args+=( "$mirror" )
@@ -66,18 +115,18 @@ for version in "${versions[@]}"; do
 			args+=( "$script" )
 		fi
 	fi
-	
+
 	mkimage="$(readlink -f "${MKIMAGE:-"mkimage.sh"}")"
 	{
 		echo "$(basename "$mkimage") ${args[*]/"$dir"/.}"
 		echo
 		echo 'https://github.com/docker/docker/blob/master/contrib/mkimage.sh'
 	} > "$dir/build-command.txt"
-	
+
 	sudo nice ionice -c 3 "$mkimage" "${args[@]}" 2>&1 | tee "$dir/build.log"
-	
+
 	sudo chown -R "$(id -u):$(id -g)" "$dir"
-	
+
 	if [ "$repo" ]; then
 		( set -x && docker build -t "${repo}:${suite}" "$dir" )
 		if [ "$suite" != "$version" ]; then
