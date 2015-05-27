@@ -1,6 +1,13 @@
 #!/bin/bash
 set -eo pipefail
 
+declare -A backports=(
+	[wheezy]=1
+	[oldstable]=1
+	[jessie]=1
+	[stable]=1
+)
+
 cd "$(readlink -f "$(dirname "$BASH_SOURCE")")"
 
 versions=( "$@" )
@@ -31,6 +38,7 @@ get_part() {
 
 repo="$(get_part . repo '')"
 if [ "$repo" ]; then
+	origRepo="$repo"
 	if [[ "$repo" != */* ]]; then
 		user="$(docker info | awk '/^Username:/ { print $2 }')"
 		if [ "$user" ]; then
@@ -94,6 +102,14 @@ for version in "${versions[@]}"; do
 			true
 		'
 		docker run --rm "${repo}:${suite}" dpkg-query -f '${Package}\t${Version}\n' -W > "$dir/build.manifest"
+		
+		if [ "${backports[$suite]}" ]; then
+			mkdir -p "$dir/backports"
+			echo "FROM $origRepo:$suite" > "$dir/backports/Dockerfile"
+			cat >> "$dir/backports/Dockerfile" <<-'EOF'
+				RUN awk '$1 ~ "^deb" { $3 = $3 "-backports"; print; exit }' /etc/apt/sources.list > /etc/apt/sources.list.d/backports.list
+			EOF
+		fi
 	fi
 done
 

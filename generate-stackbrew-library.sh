@@ -61,6 +61,11 @@ for version in "${versions[@]}"; do
 	for va in "${versionAliases[@]}"; do
 		echo "$va: ${url}@${commit} $version"
 	done
+	
+	if [ -s "$version/backports/Dockerfile" ]; then
+		echo
+		echo "$version-backports: ${url}@${commit} $version/backports"
+	fi
 done
 
 dockerfiles='git://github.com/tianon/dockerfiles'
