@@ -21,7 +21,7 @@ versions=( "${versions[@]%/}" )
 url='git://github.com/tianon/docker-brew-debian'
 
 cat <<-'EOH'
-# maintainer: Tianon Gravi <admwiggin@gmail.com> (@tianon)
+# maintainer: Tianon Gravi <tianon@debian.org> (@tianon)
 # maintainer: Paul Tagliamonte <paultag@debian.org> (@paultag)
 EOH
 
