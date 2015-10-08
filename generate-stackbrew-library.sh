@@ -68,10 +68,12 @@ for version in "${versions[@]}"; do
 	fi
 done
 
-dockerfiles='git://github.com/tianon/dockerfiles'
-commit="$(git ls-remote "$dockerfiles" HEAD | cut -d$'\t' -f1)"
+dockerfilesGit='git://github.com/tianon/dockerfiles'
+dockerfiles='https://github.com/tianon/dockerfiles/commits/master/debian'
+rcBuggyCommit="$(curl -fsSL "$dockerfiles/rc-buggy/Dockerfile.atom" | tac|tac | awk -F '[[:space:]]*[<>/]+' '$2 == "id" && $3 ~ /Commit/ { print $4; exit }')"
+experimentalCommit="$(curl -fsSL "$dockerfiles/experimental/Dockerfile.atom" | tac|tac | awk -F '[[:space:]]*[<>/]+' '$2 == "id" && $3 ~ /Commit/ { print $4; exit }')"
 cat <<-EOF
 
-rc-buggy: $dockerfiles@$commit debian/rc-buggy
-experimental: $dockerfiles@$commit debian/experimental
+rc-buggy: $dockerfilesGit@$rcBuggyCommit debian/rc-buggy
+experimental: $dockerfilesGit@$experimentalCommit debian/experimental
 EOF
