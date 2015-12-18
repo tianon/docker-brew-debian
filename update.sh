@@ -93,7 +93,7 @@ for version in "${versions[@]}"; do
 		if [ "$suite" != "$version" ]; then
 			( set -x && docker tag "${repo}:${suite}" "${repo}:${version}" )
 		fi
-		docker run -it --rm "${repo}:${suite}" bash -xc '
+		docker run --rm "${repo}:${suite}" bash -xc '
 			cat /etc/apt/sources.list
 			echo
 			cat /etc/os-release 2>/dev/null
