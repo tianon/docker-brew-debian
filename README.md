@@ -4,6 +4,10 @@ This is the Git repo of the Docker [official image](https://docs.docker.com/dock
 
 The full readme is generated over in [docker-library/docs](https://github.com/docker-library/docs), specificially in [docker-library/docs/debian](https://github.com/docker-library/docs/tree/master/debian).
 
+## Maintainers
+
+This image is maintained by [tianon](https://nm.debian.org/public/person/tianon) and [paultag](https://nm.debian.org/public/person/paultag), who are Debian Developers.
+
 ## Building
 
 This image is built using [`contrib/mkimage.sh` from `github.com/docker/docker`](https://github.com/docker/docker/blob/master/contrib/mkimage.sh), where the interesting bits live in [`contrib/mkimage/debootstrap`](https://github.com/docker/docker/blob/master/contrib/mkimage/debootstrap).  The `mkimage.sh` file here is a symlink to my local copy of that `mkimage.sh` script (which enables it to find the `debootstrap` script it needs).
