@@ -1,18 +1,54 @@
 #!/bin/bash
 set -eo pipefail
 
+cd "$(readlink -f "$(dirname "$BASH_SOURCE")")"
+
+declare -A codenameCache=()
+codename() {
+	local suite="$1"; shift
+	if [ -z "${codenameCache[$suite]}" ]; then
+		local ret="$(curl -fsSL "http://httpredir.debian.org/debian/dists/$suite/Release" | awk -F ': ' '$1 == "Codename" { print $2 }' || true)"
+		codenameCache[$suite]="${ret:-$suite}"
+	fi
+	echo "${codenameCache[$suite]}"
+}
+
 declare -A backports=(
-	[wheezy]=1
-	[oldstable]=1
-	[jessie]=1
 	[stable]=1
+	[oldstable]=1
+	[$(codename stable)]=1
+	[$(codename oldstable)]=1
 )
 
-cd "$(readlink -f "$(dirname "$BASH_SOURCE")")"
+declare -A unstableSuites=(
+	[unstable]=1
+	[testing]=1
+	[$(codename unstable)]=1
+	[$(codename testing)]=1
+)
 
 versions=( "$@" )
 if [ ${#versions[@]} -eq 0 ]; then
-	versions=( */ )
+	branch="$(git describe --contains --all HEAD)"
+	case "$branch" in
+		dist-stable)
+			for suite in */; do
+				suite="${suite%/}"
+				[ -z "${unstableSuites[$suite]}" ] || continue
+				versions+=( "$suite" )
+			done
+			;;
+		dist-unstable)
+			for suite in "${!unstableSuites[@]}"; do
+				if [ -d "$suite" ]; then
+					versions+=( "$suite" )
+				fi
+			done
+			;;
+		*)
+			versions=( */ )
+			;;
+	esac
 fi
 versions=( "${versions[@]%/}" )
 
