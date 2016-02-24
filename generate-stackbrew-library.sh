@@ -41,10 +41,10 @@ for branch in "${branches[@]}"; do
 done
 
 for version in "${versions[@]}"; do
-	commit="$(git log -1 --format='format:%H' "${branches[@]}" -- "$version")"
+	tarball="$version/rootfs.tar.xz"
+	commit="$(git log -1 --format='format:%H' "${branches[@]}" -- "$tarball")"
 	versionAliases=()
 	if [ -z "${noVersion[$version]}" ]; then
-		tarball="$version/rootfs.tar.xz"
 		fullVersion="$(git show "$commit:$tarball" | tar -xvJ etc/debian_version --to-stdout 2>/dev/null || true)"
 		if [ -z "$fullVersion" ] || [[ "$fullVersion" == */sid ]]; then
 			fullVersion="$(eval "$(git show "$commit:$tarball" | tar -xvJ etc/os-release --to-stdout 2>/dev/null || true)" && echo "$VERSION" | cut -d' ' -f1)"
