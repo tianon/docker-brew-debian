@@ -18,14 +18,14 @@ noVersion=(
 
 versions=( */ )
 versions=( "${versions[@]%/}" )
-url='git://github.com/tianon/docker-brew-debian'
 
-cat <<-'EOH'
-# maintainer: Tianon Gravi <tianon@debian.org> (@tianon)
-# maintainer: Paul Tagliamonte <paultag@debian.org> (@paultag)
+cat <<-EOH
+Maintainers: Tianon Gravi <tianon@debian.org> (@tianon),
+             Paul Tagliamonte <paultag@debian.org> (@paultag)
+GitRepo: https://github.com/tianon/docker-brew-debian.git
 EOH
 
-branches=( master dist-stable dist-unstable )
+branches=( dist-stable dist-unstable master )
 
 for branch in "${branches[@]}"; do
 	if [ "$branch" = 'master' ]; then
@@ -40,9 +40,28 @@ for branch in "${branches[@]}"; do
 	fi
 done
 
+# prints "$2$1$3$1...$N"
+join() {
+	local sep="$1"; shift
+	local out; printf -v out "${sep//%/%%}%s" "$@"
+	echo "${out#$sep}"
+}
+
 for version in "${versions[@]}"; do
 	tarball="$version/rootfs.tar.xz"
 	commit="$(git log -1 --format='format:%H' "${branches[@]}" -- "$tarball")"
+	branch=
+	for b in "${branches[@]}"; do
+		if git merge-base --is-ancestor "$commit" "$b" &> /dev/null; then
+			branch="$b"
+			break
+		fi
+	done
+	if [ -z "$branch" ]; then
+		echo >&2 "error: cannot determine branch for $tarball (commit $commit)"
+		exit 1
+	fi
+
 	versionAliases=()
 	if [ -z "${noVersion[$version]}" ]; then
 		fullVersion="$(git show "$commit:$tarball" | tar -xvJ etc/debian_version --to-stdout 2>/dev/null || true)"
@@ -63,24 +82,47 @@ for version in "${versions[@]}"; do
 		fi
 	fi
 	versionAliases+=( $version $(git show "$commit:$version/suite" 2>/dev/null || true) ${aliases[$version]} )
-	
+
 	echo
-	for va in "${versionAliases[@]}"; do
-		echo "$va: ${url}@${commit} $version"
-	done
-	
+	cat <<-EOE
+		Tags: $(join ', ' "${versionAliases[@]}")
+		GitFetch: refs/heads/$branch
+		GitCommit: $commit
+		Directory: $version
+	EOE
+
 	if [ "$(git show "$commit:$version/backports/Dockerfile" 2>/dev/null || true)" ]; then
 		echo
-		echo "$version-backports: ${url}@${commit} $version/backports"
+		cat <<-EOE
+			Tags: $version-backports
+			GitFetch: refs/heads/$branch
+			GitCommit: $commit
+			Directory: $version/backports
+		EOE
 	fi
 done
 
-dockerfilesGit='git://github.com/tianon/dockerfiles'
-dockerfiles='https://github.com/tianon/dockerfiles/commits/master/debian'
+dockerfilesBase='https://github.com/tianon/dockerfiles'
+dockerfilesGit="$dockerfilesBase.git"
+dockerfilesBranch='master'
+dockerfiles="$dockerfilesBase/commits/$dockerfilesBranch/debian"
+
 rcBuggyCommit="$(curl -fsSL "$dockerfiles/rc-buggy/Dockerfile.atom" | tac|tac | awk -F '[ \t]*[<>/]+' '$2 == "id" && $3 ~ /Commit/ { print $4; exit }')"
 experimentalCommit="$(curl -fsSL "$dockerfiles/experimental/Dockerfile.atom" | tac|tac | awk -F '[ \t]*[<>/]+' '$2 == "id" && $3 ~ /Commit/ { print $4; exit }')"
-cat <<-EOF
 
-rc-buggy: $dockerfilesGit@$rcBuggyCommit debian/rc-buggy
-experimental: $dockerfilesGit@$experimentalCommit debian/experimental
-EOF
+cat <<-EOE
+
+	# sid + rc-buggy
+	Tags: rc-buggy
+	GitRepo: $dockerfilesGit
+	GitFetch: refs/heads/$dockerfilesBranch
+	GitCommit: $rcBuggyCommit
+	Directory: debian/rc-buggy
+
+	# unstable + experimental
+	Tags: experimental
+	GitRepo: $dockerfilesGit
+	GitFetch: refs/heads/$dockerfilesBranch
+	GitCommit: $experimentalCommit
+	Directory: debian/experimental
+EOE
