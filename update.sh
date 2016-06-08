@@ -131,7 +131,7 @@ for version in "${versions[@]}"; do
 			( set -x && docker tag "${repo}:${suite}" "${repo}:${version}" )
 		fi
 		if [ "$suite" = "$latest" ]; then
-			( set -x && docker tag -f "$repo:$suite" "$repo:latest" )
+			( set -x && docker tag "$repo:$suite" "$repo:latest" )
 		fi
 		docker run --rm "${repo}:${suite}" bash -xc '
 			cat /etc/apt/sources.list
