@@ -90,6 +90,7 @@ for version in "${versions[@]}"; do
 	components="$(get_part "$dir" components 'main')"
 	include="$(get_part "$dir" include '')"
 	arch="$(get_part "$dir" arch '')"
+	mergedUsr="$(get_part "$dir" merged-usr '')"
 	suite="$(get_part "$dir" suite "$version")"
 	mirror="$(get_part "$dir" mirror '')"
 	script="$(get_part "$dir" script '')"
@@ -99,6 +100,7 @@ for version in "${versions[@]}"; do
 	[ -z "$components" ] || args+=( --components="$components" )
 	[ -z "$include" ] || args+=( --include="$include" )
 	[ -z "$arch" ] || args+=( --arch="$arch" )
+	[ -z "$mergedUsr" ] || args+=( --merged-usr )
 	
 	debootstrapVersion="$(debootstrap --version)"
 	debootstrapVersion="${debootstrapVersion##* }"
