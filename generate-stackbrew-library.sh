@@ -25,7 +25,7 @@ Maintainers: Tianon Gravi <tianon@debian.org> (@tianon),
 GitRepo: https://github.com/tianon/docker-brew-debian.git
 EOH
 
-branches=( dist-stable dist-unstable master )
+branches=( dist-stable dist-unstable dist-oldstable master )
 
 for branch in "${branches[@]}"; do
 	if [ "$branch" = 'master' ]; then
