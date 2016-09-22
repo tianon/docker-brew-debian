@@ -26,16 +26,28 @@ declare -A unstableSuites=(
 	[$(codename unstable)]=1
 	[$(codename testing)]=1
 )
+declare -A stableSuites=(
+	[stable]=1
+	[$(codename stable)]=1
+)
 
 versions=( "$@" )
 if [ ${#versions[@]} -eq 0 ]; then
 	branch="$(git describe --contains --all HEAD)"
 	case "$branch" in
-		dist-stable)
+		dist-oldstable)
 			for suite in */; do
 				suite="${suite%/}"
+				[ -z "${stableSuites[$suite]}" ] || continue
 				[ -z "${unstableSuites[$suite]}" ] || continue
 				versions+=( "$suite" )
+			done
+			;;
+		dist-stable)
+			for suite in "${!stableSuites[@]}"; do
+				if [ -d "$suite" ]; then
+					versions+=( "$suite" )
+				fi
 			done
 			;;
 		dist-unstable)
