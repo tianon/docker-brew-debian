@@ -50,6 +50,10 @@ join() {
 for version in "${versions[@]}"; do
 	tarball="$version/rootfs.tar.xz"
 	commit="$(git log -1 --format='format:%H' "${branches[@]}" -- "$tarball")"
+	if [ -z "$commit" ]; then
+		echo >&2 "warning: cannot determine commit for $tarball; skipping"
+		continue
+	fi
 	branch=
 	for b in "${branches[@]}"; do
 		if git merge-base --is-ancestor "$commit" "$b" &> /dev/null; then
