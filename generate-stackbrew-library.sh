@@ -95,15 +95,17 @@ for version in "${versions[@]}"; do
 		Directory: $version
 	EOE
 
-	if [ "$(git show "$commit:$version/backports/Dockerfile" 2>/dev/null || true)" ]; then
-		echo
-		cat <<-EOE
-			Tags: $version-backports
-			GitFetch: refs/heads/$branch
-			GitCommit: $commit
-			Directory: $version/backports
-		EOE
-	fi
+	for imageVariant in slim backports; do
+		if [ "$(git show "$commit:$version/$imageVariant/Dockerfile" 2>/dev/null || true)" ]; then
+			echo
+			cat <<-EOE
+				Tags: $version-$imageVariant
+				GitFetch: refs/heads/$branch
+				GitCommit: $commit
+				Directory: $version/$imageVariant
+			EOE
+		fi
+	done
 done
 
 dockerfilesBase='https://github.com/tianon/dockerfiles'
