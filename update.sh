@@ -112,12 +112,23 @@ for version in "${versions[@]}"; do
 	[ -z "$components" ] || args+=( --components="$components" )
 	[ -z "$include" ] || args+=( --include="$include" )
 	[ -z "$arch" ] || args+=( --arch="$arch" )
-	[ -z "$mergedUsr" ] || args+=( --merged-usr )
 	
 	debootstrapVersion="$(debootstrap --version)"
 	debootstrapVersion="${debootstrapVersion##* }"
 	if dpkg --compare-versions "$debootstrapVersion" '>=' '1.0.69'; then
 		args+=( --force-check-gpg )
+	fi
+	
+	if [ "$mergedUsr" ]; then
+		# --merged-usr was introduced in debootstrap 1.0.83
+		if dpkg --compare-versions "$debootstrapVersion" '>=' '1.0.83'; then
+			args+=( --merged-usr )
+		else
+			echo >&2
+			echo >&2 "warning: --merged-usr was added in debootstrap 1.0.83"
+			echo >&2 "  only $debootstrapVersion was found, so request for merged-usr is being ignored"
+			echo >&2
+		fi
 	fi
 	
 	args+=( "$suite" )
