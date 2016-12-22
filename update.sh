@@ -7,7 +7,7 @@ declare -A codenameCache=()
 codename() {
 	local suite="$1"; shift
 	if [ -z "${codenameCache[$suite]}" ]; then
-		local ret="$(curl -fsSL "http://httpredir.debian.org/debian/dists/$suite/Release" | awk -F ': ' '$1 == "Codename" { print $2 }' || true)"
+		local ret="$(curl -fsSL "http://deb.debian.org/debian/dists/$suite/Release" | awk -F ': ' '$1 == "Codename" { print $2 }' || true)"
 		codenameCache[$suite]="${ret:-$suite}"
 	fi
 	echo "${codenameCache[$suite]}"
