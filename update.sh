@@ -3,11 +3,32 @@ set -eo pipefail
 
 cd "$(readlink -f "$(dirname "$BASH_SOURCE")")"
 
+get_part() {
+	dir="$1"
+	shift
+	part="$1"
+	shift
+	if [ -f "$dir/$part" ]; then
+		cat "$dir/$part"
+		return 0
+	fi
+	if [ -f "$part" ]; then
+		cat "$part"
+		return 0
+	fi
+	if [ $# -gt 0 ]; then
+		echo "$1"
+		return 0
+	fi
+	return 1
+}
+
 declare -A codenameCache=()
 codename() {
 	local suite="$1"; shift
 	if [ -z "${codenameCache[$suite]}" ]; then
-		local ret="$(curl -fsSL "http://deb.debian.org/debian/dists/$suite/Release" | awk -F ': ' '$1 == "Codename" { print $2 }' || true)"
+		local mirror="$(get_part "$suite" mirror '')"
+		local ret="$(curl -fsSL "$mirror/dists/$suite/Release" | awk -F ': ' '$1 == "Codename" { print $2 }' || true)"
 		codenameCache[$suite]="${ret:-$suite}"
 	fi
 	echo "${codenameCache[$suite]}"
@@ -63,26 +84,6 @@ if [ ${#versions[@]} -eq 0 ]; then
 	esac
 fi
 versions=( "${versions[@]%/}" )
-
-get_part() {
-	dir="$1"
-	shift
-	part="$1"
-	shift
-	if [ -f "$dir/$part" ]; then
-		cat "$dir/$part"
-		return 0
-	fi
-	if [ -f "$part" ]; then
-		cat "$part"
-		return 0
-	fi
-	if [ $# -gt 0 ]; then
-		echo "$1"
-		return 0
-	fi
-	return 1
-}
 
 repo="$(get_part . repo '')"
 if [ "$repo" ]; then
