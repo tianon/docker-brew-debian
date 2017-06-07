@@ -1,3 +1,7 @@
+# **DEPRECATED**
+
+This repository is now deprecated in favor of https://github.com/debuerreotype/docker-debian-artifacts, which builds reproducible Debian rootfs tarballs using https://github.com/debuerreotype/debuerreotype.
+
 # About this Repo
 
 This is the Git repo of the Docker [official image](https://docs.docker.com/docker-hub/official_repos/) for [debian](https://registry.hub.docker.com/_/debian/). See [the Docker Hub page](https://registry.hub.docker.com/_/debian/) for the full readme on how to use this Docker image and for information regarding contributing and issues.
